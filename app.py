@@ -69,6 +69,33 @@ def logout():
 
     return redirect("/")
 
+@app.route("/create_ride", methods=["GET", "POST"])
+def create_ride():
+
+    if "user" not in session:
+        return redirect("/login")
+
+    if request.method == "POST":
+
+        ride = {
+
+            "pickup": request.form["pickup"],
+            "destination": request.form["destination"],
+            "date": request.form["date"],
+            "time": request.form["time"],
+            "seats": request.form["seats"],
+            "vehicle": request.form["vehicle"],
+            "price": request.form["price"],
+            "driver": session["user"]
+
+        }
+
+        db.collection("Rides").add(ride)
+
+        return redirect("/dashboard")
+
+    return render_template("create_ride.html")
+
 @app.route("/test")
 def test():
     return "Firebase Connected Successfully!"
