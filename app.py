@@ -605,8 +605,8 @@ def api_booking_details(booking_id):
         booking["id"] = doc.id
         
         current_user = session["user"]
-        if booking.get("customer") != current_user and booking.get("driver") != current_user:
-            return jsonify({"error": "Unauthorized"}), 403
+        is_owner = (booking.get("customer") == current_user or booking.get("driver") == current_user)
+        booking["read_only"] = not is_owner
             
         return jsonify(booking)
     except Exception as e:
@@ -639,6 +639,82 @@ def api_active_bookings():
                 bookings.append(b)
                 
         return jsonify({"bookings": bookings})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/chat/send", methods=["POST"])
+def api_chat_send():
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+        
+    data = request.get_json() or {}
+    booking_id = data.get("booking_id")
+    message = data.get("message")
+    
+    if not booking_id or not message:
+        return jsonify({"error": "Missing booking_id or message"}), 400
+        
+    try:
+        booking_doc = db.collection("Bookings").document(booking_id).get()
+        if not booking_doc.exists:
+            return jsonify({"error": "Booking not found"}), 404
+            
+        booking = booking_doc.to_dict()
+        current_user = session["user"]
+        if booking.get("customer") != current_user and booking.get("driver") != current_user:
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        chat_data = {
+            "booking_id": booking_id,
+            "sender": current_user,
+            "message": message.strip(),
+            "timestamp": firestore_module.SERVER_TIMESTAMP
+        }
+        
+        db.collection("Chats").add(chat_data)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/chat/messages/<booking_id>")
+def api_chat_messages(booking_id):
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+        
+    try:
+        booking_doc = db.collection("Bookings").document(booking_id).get()
+        if not booking_doc.exists:
+            return jsonify({"error": "Booking not found"}), 404
+            
+        booking = booking_doc.to_dict()
+        current_user = session["user"]
+        if booking.get("customer") != current_user and booking.get("driver") != current_user:
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        messages = []
+        docs = db.collection("Chats").where("booking_id", "==", booking_id).stream()
+        for doc in docs:
+            m = doc.to_dict()
+            m["id"] = doc.id
+            messages.append(m)
+            
+        # Sort messages locally by timestamp
+        def get_timestamp_key(msg):
+            ts = msg.get("timestamp")
+            if ts:
+                return ts
+            return datetime.datetime.now(datetime.timezone.utc)
+
+        messages.sort(key=get_timestamp_key)
+        
+        # Convert timestamp to ISO string for JSON serialization
+        for m in messages:
+            if m.get("timestamp") and not isinstance(m["timestamp"], str):
+                m["timestamp"] = m["timestamp"].isoformat()
+            elif not m.get("timestamp"):
+                m["timestamp"] = None
+            
+        return jsonify({"messages": messages})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

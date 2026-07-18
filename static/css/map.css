@@ -524,4 +524,351 @@
         margin: 16px;
         height: 400px;
     }
+
+    .chat-drawer {
+        width: calc(100% - 32px) !important;
+        left: 16px !important;
+        bottom: 16px !important;
+        height: 320px !important;
+        top: auto !important;
+    }
 }
+
+/* Communication action buttons inside driver card */
+.comm-circle-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: white;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-base);
+    font-size: 14px;
+    outline: none;
+}
+
+.comm-circle-btn:hover {
+    color: white !important;
+    border-color: transparent;
+    transform: scale(1.05);
+}
+
+.chat-trigger:hover {
+    background-color: var(--primary);
+}
+
+.call-trigger:hover {
+    background-color: var(--success);
+}
+
+.comm-circle-btn:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+/* Floating Chat Drawer overlaying map view */
+.chat-drawer {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    bottom: 16px;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    z-index: 1000;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.chat-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+}
+
+.chat-title-info h4 {
+    font-size: 14px;
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+.chat-status-online {
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chat-status-online .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--success);
+    display: inline-block;
+}
+
+.close-chat-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.close-chat-btn:hover {
+    color: var(--danger);
+}
+
+.chat-messages-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(248, 250, 252, 0.5);
+}
+
+/* Chat bubble styling */
+.chat-bubble {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.chat-bubble.sent {
+    background-color: var(--primary);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+    box-shadow: 0 2px 5px rgba(79, 70, 229, 0.2);
+}
+
+.chat-bubble.received {
+    background-color: white;
+    color: var(--text-main);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.chat-bubble .chat-meta {
+    font-size: 9px;
+    opacity: 0.7;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.chat-bubble.sent .chat-meta {
+    color: var(--primary-light);
+}
+
+.chat-bubble.received .chat-meta {
+    color: var(--text-muted);
+}
+
+.chat-input-area {
+    padding: 12px;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--border-color);
+    background: white;
+}
+
+.chat-input-area input {
+    flex-grow: 1;
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    outline: none;
+    font-size: 13px;
+    transition: var(--transition-base);
+    background: var(--bg-main);
+}
+
+.chat-input-area input:focus {
+    border-color: var(--primary);
+    background: white;
+}
+
+.chat-send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-base);
+}
+
+.chat-send-btn:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.05);
+}
+
+/* VOIP Calling Screen Overlay */
+.voip-call-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.voip-call-card {
+    width: 350px;
+    border-radius: 24px;
+    padding: 40px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 41, 59, 0.6) !important;
+    color: white !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.voip-caller-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.voip-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+}
+
+.voip-caller-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 10px;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.voip-call-status {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+}
+
+.voip-visualizer-container {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#voip-canvas {
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+}
+
+.voip-call-actions {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    gap: 15px;
+}
+
+.voip-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: var(--transition-base);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 65px;
+}
+
+.voip-action-btn i {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    transition: var(--transition-base);
+}
+
+.voip-action-btn:hover i {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.voip-action-btn.active i {
+    background-color: var(--accent) !important;
+    border-color: transparent !important;
+}
+
+.voip-action-btn.danger i {
+    background-color: var(--danger) !important;
+    border-color: transparent !important;
+}
+
+.voip-action-btn.danger:hover i {
+    background-color: var(--danger-hover) !important;
+}
+

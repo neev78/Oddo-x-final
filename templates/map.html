@@ -126,12 +126,20 @@
                         </div>
                     </div>
 
-                    <!-- Driver Card -->
+                    <!-- Driver Card with Call & Chat buttons -->
                     <div class="driver-card glass-panel">
                         <div class="driver-avatar" id="driver-avatar-initials">--</div>
-                        <div class="driver-info">
+                        <div class="driver-info" style="flex-grow: 1;">
                             <h4 id="driver-name-text">--</h4>
                             <p id="vehicle-info-text">--</p>
+                        </div>
+                        <div class="driver-comm-actions" id="driver-comm-actions" style="display: flex; gap: 8px;">
+                            <button class="comm-circle-btn chat-trigger" id="chat-trigger-btn" title="Send message" onclick="toggleChatDrawer()">
+                                <i class="fa-regular fa-comment-dots"></i>
+                            </button>
+                            <button class="comm-circle-btn call-trigger" id="call-trigger-btn" title="Call driver" onclick="startVoiceCall()">
+                                <i class="fa-solid fa-phone"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -172,6 +180,33 @@
                 <div id="map-container">
                     <div id="map"></div>
                 </div>
+                
+                <!-- Slide-out Chat Drawer -->
+                <div id="chat-drawer" class="chat-drawer glass-panel" style="display: none;">
+                    <div class="chat-header">
+                        <div class="chat-title-info">
+                            <h4 id="chat-recipient-name">Driver Chat</h4>
+                            <span class="chat-status-online"><span class="dot"></span>Active Ride</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button class="secondary-btn" id="sim-reply-btn" style="padding: 4px 8px; font-size: 11px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" onclick="simulateDriverReply()" title="Simulate reply from driver for demo">
+                                <i class="fa-solid fa-robot"></i> Reply
+                            </button>
+                            <button class="close-chat-btn" onclick="toggleChatDrawer()">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chat-messages-container" id="chat-messages-container">
+                        <!-- Messages dynamically populated by JS -->
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input-field" placeholder="Type a message..." onkeydown="handleChatInputKey(event)">
+                        <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -199,5 +234,35 @@
             });
         }
     </script>
+
+    <!-- VOIP Call Simulator Overlay (Overlaying entire screen) -->
+    <div id="voip-call-overlay" class="voip-call-overlay" style="display: none;">
+        <div class="voip-call-card glass-panel">
+            <div class="voip-caller-profile">
+                <div class="voip-avatar" id="voip-caller-avatar">--</div>
+                <h2 id="voip-caller-name">Driver</h2>
+                <div class="voip-call-status" id="voip-call-status">Dialing...</div>
+            </div>
+            
+            <div class="voip-visualizer-container">
+                <canvas id="voip-canvas"></canvas>
+            </div>
+            
+            <div class="voip-call-actions">
+                <button class="voip-action-btn" id="voip-btn-mute" onclick="toggleVoipMute()" title="Mute Microphone">
+                    <i class="fa-solid fa-microphone-slash"></i>
+                    <span>Mute</span>
+                </button>
+                <button class="voip-action-btn danger" id="voip-btn-end" onclick="endVoiceCall()" title="End Call">
+                    <i class="fa-solid fa-phone-slash"></i>
+                    <span>End</span>
+                </button>
+                <button class="voip-action-btn" id="voip-btn-speaker" onclick="toggleVoipSpeaker()" title="Toggle Speaker">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span>Speaker</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

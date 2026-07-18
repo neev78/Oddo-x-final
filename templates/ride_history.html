@@ -120,6 +120,12 @@
                                 <a href="/map?booking_id={{ booking.id }}" class="primary-btn" style="padding: 8px 16px; font-size: 13px; text-decoration: none; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--primary));">
                                     <i class="fas fa-location-crosshairs"></i> Track Ride
                                 </a>
+                                <a href="/map?booking_id={{ booking.id }}&action=chat" class="secondary-btn" style="padding: 8px 12px; font-size: 13px; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" title="Chat with Driver/Passenger">
+                                    <i class="fa-regular fa-comment-dots" style="color: var(--primary);"></i> Chat
+                                </a>
+                                <a href="/map?booking_id={{ booking.id }}&action=call" class="secondary-btn" style="padding: 8px 12px; font-size: 13px; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" title="Call Driver/Passenger">
+                                    <i class="fa-solid fa-phone" style="color: var(--success);"></i> Call
+                                </a>
                                 <button class="complete-ride-btn" onclick="completeRide('{{ booking.id }}', this)">
                                     <i class="fas fa-flag-checkered"></i> End Ride
                                 </button>
