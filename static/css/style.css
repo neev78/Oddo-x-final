@@ -1,0 +1,154 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f4f7fc;
+}
+
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 60px;
+    background:#0d6efd;
+}
+
+.logo{
+    color:white;
+    font-size:28px;
+    font-weight:bold;
+}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    margin-left:20px;
+    font-size:18px;
+}
+
+.register-btn{
+    background:white;
+    color:#0d6efd;
+    padding:10px 18px;
+    border-radius:5px;
+}
+
+.hero{
+    text-align:center;
+    padding:80px 20px;
+}
+
+.hero h1{
+    font-size:48px;
+    color:#0d6efd;
+}
+
+.hero p{
+    font-size:20px;
+    margin-top:15px;
+    color:#555;
+}
+
+.start-btn{
+    display:inline-block;
+    margin-top:25px;
+    background:#0d6efd;
+    color:white;
+    padding:14px 28px;
+    text-decoration:none;
+    border-radius:6px;
+}
+
+.features{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+    padding:50px;
+}
+
+.feature-card{
+    background:white;
+    padding:30px;
+    text-align:center;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+
+.feature-card:hover{
+    transform:translateY(-5px);
+    transition:.3s;
+}
+
+footer{
+    background:#0d6efd;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+/* Login & Register */
+
+.auth-body{
+    margin:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:linear-gradient(135deg,#0d6efd,#6ea8fe);
+}
+
+.auth-card{
+    width:400px;
+    background:white;
+    padding:40px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+    text-align:center;
+}
+
+.auth-card h1{
+    color:#0d6efd;
+    margin-bottom:5px;
+}
+
+.auth-card h2{
+    color:#444;
+    margin-bottom:25px;
+}
+
+.auth-card input{
+    width:100%;
+    padding:14px;
+    margin:10px 0;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:16px;
+}
+
+.auth-card button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:8px;
+    background:#0d6efd;
+    color:white;
+    font-size:17px;
+    cursor:pointer;
+}
+
+.auth-card button:hover{
+    background:#084298;
+}
+
+.auth-card p{
+    margin-top:20px;
+}
+
+.auth-card a{
+    color:#0d6efd;
+    text-decoration:none;
+    font-weight:bold;
+}
