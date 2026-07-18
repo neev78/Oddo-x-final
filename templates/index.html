@@ -3,62 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Carpool</title>
+    <title>RouteMate</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
-<header>
-    <div class="logo">
-        🚗 Employee Carpool
+<header class="top-navbar">
+
+    <div class="logo-area">
+    <div class="logo-text">
+        <h2>RouteMate</h2>
+        <span>SMART CARPOOLING PLATFORM</span>
+    </div>
+</div>
+    <nav class="menu">
+
+        <a class="active" href="/">Home</a>
+
+        <a href="#about">About</a>
+
+       <a href="#contact">Contact</a>
+
+    </nav>
+
+    <div class="buttons">
+
+        <a href="/login" class="login-btn">Log In</a>
+
+        <a href="/register" class="signup-btn">Sign Up</a>
+
     </div>
 
-    <nav>
-        <a href="/login">Sign In</a>
-        <a href="/register" class="register-btn">Register</a>
-    </nav>
 </header>
+
 
 <section class="hero">
 
-    <h1>Travel Together, Save Together</h1>
+    <div class="hero-logo">
+
+<img src="{{ url_for('static', filename='images/routemate_logo.jpeg') }}"
+     class="hero-image">
+
+</div>
+<section id="about" class="info-section">
+
+    <h2>Why RouteMate?</h2>
 
     <p>
-        Find rides, create rides, save money, and commute safely with your colleagues.
+        RouteMate is a smart workplace carpooling platform that helps employees
+        travel together, save fuel costs, reduce traffic congestion and create
+        better workplace connections.
     </p>
 
-    <a href="/register" class="start-btn">Get Started</a>
-
 </section>
 
-<section class="features">
+    <div class="hero-buttons">
 
-    <div class="feature-card">
-        <h3>🚘 Create Ride</h3>
-        <p>Offer rides to your colleagues.</p>
-    </div>
+        <a href="/login" class="primary-btn">
+            Log In to Portal
+        </a>
 
-    <div class="feature-card">
-        <h3>🔍 Find Ride</h3>
-        <p>Search rides near your route.</p>
-    </div>
+        <a href="/register" class="secondary-btn">
+            Sign Up for Account
+        </a>
 
-    <div class="feature-card">
-        <h3>🤝 Commute Buddy</h3>
-        <p>Find travel partners with similar preferences.</p>
-    </div>
-
-    <div class="feature-card">
-        <h3>🚨 Emergency SOS</h3>
-        <p>Quick emergency support during travel.</p>
     </div>
 
 </section>
+<section id="contact" class="contact-section">
 
-<footer>
-    © 2026 Employee Carpool System
-</footer>
+    <h2>RouteMate Features</h2>
+
+    <div class="feature-grid">
+
+        <div class="feature-card">
+            <h3>Create Ride</h3>
+            <p>Create your own ride and offer empty seats to coworkers.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Find Ride</h3>
+            <p>Search available rides going to your destination.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Commute Buddy</h3>
+            <p>Connect with employees travelling on similar routes.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Emergency SOS</h3>
+            <p>Quick emergency assistance while travelling.</p>
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <h3>Contact Us</h3>
+
+    <p>Email : support@routemate.com</p>
+
+    <p>Phone : +91-9876543210</p>
+
+    <p>© 2026 RouteMate. All Rights Reserved.</p>
+
+</section>
 
 </body>
 </html>
