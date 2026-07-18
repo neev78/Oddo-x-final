@@ -37,14 +37,20 @@ def register():
 
     if request.method == "POST":
 
-        user_data = {
+        email = request.form["email"]
 
+        # Check if email already exists
+        users = db.collection("Users").where("email", "==", email).stream()
+
+        for user in users:
+            return "Email already registered! Please login."
+
+        user_data = {
             "name": request.form["name"],
             "employee_id": request.form["employee_id"],
-            "email": request.form["email"],
+            "email": email,
             "phone": request.form["phone"],
             "password": request.form["password"]
-
         }
 
         db.collection("Users").add(user_data)

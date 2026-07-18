@@ -1,79 +1,115 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Commute Buddy Dashboard</title>
 
-<title>Dashboard</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
 
+<header class="navbar">
+
+    <div class="logo">
+        🚗 <span>Commute Buddy</span>
+    </div>
+
+    <nav>
+
+        <a href="/dashboard">Dashboard</a>
+
+        <a href="/create_ride">Create Ride</a>
+
+        <a href="/find_ride">Find Ride</a>
+
+        <a href="#">Bookings</a>
+
+        <a href="#">Ride History</a>
+
+        <a href="#">SOS</a>
+
+    </nav>
+
+    <a href="/" class="logout-btn">Logout</a>
+
+</header>
+
+
+<div class="dashboard">
+
 <h1>Employee Dashboard</h1>
 
-<div class="cards">
+<div class="card-container">
 
-<div class="card">Create Ride</div>
+<a href="/create_ride" class="card">
 
-<div class="card">Find Ride</div>
+🚗
 
-<div class="card">My Bookings</div>
+<h2>Create Ride</h2>
 
-<div class="card">Ride History</div>
+<p>Offer a ride to coworkers.</p>
 
-<div class="card">Emergency SOS</div>
-
-<div class="card">Logout</div>
-
-<a href="/logout">
-    <button>Logout</button>
 </a>
 
-<a href="/find_ride">
-    <button>Find Ride</button>
+
+<a href="/find_ride" class="card">
+
+🔍
+
+<h2>Find Ride</h2>
+
+<p>Search available rides.</p>
+
 </a>
 
-<div class="dashboard-container">
 
-    <a href="/create_ride" class="card">
-        <h2>🚗</h2>
-        <h3>Create Ride</h3>
-        <p>Offer a ride to colleagues.</p>
-    </a>
+<a href="#" class="card">
 
-    <a href="/find_ride" class="card">
-        <h2>🔍</h2>
-        <h3>Find Ride</h3>
-        <p>Search available rides.</p>
-    </a>
+📖
 
-    <a href="/my_bookings" class="card">
-        <h2>📖</h2>
-        <h3>My Bookings</h3>
-        <p>View your booked rides.</p>
-    </a>
+<h2>Bookings</h2>
 
-    <a href="/commute_buddy" class="card">
-        <h2>👥</h2>
-        <h3>Commute Buddy</h3>
-        <p>Find employees travelling the same route.</p>
-    </a>
+<p>Your booked rides.</p>
 
-    <a href="/sos" class="card">
-        <h2>🚨</h2>
-        <h3>Emergency SOS</h3>
-        <p>Send emergency alert.</p>
-    </a>
+</a>
 
-    <a href="/profile" class="card">
-        <h2>👤</h2>
-        <h3>Profile</h3>
-        <p>View and edit profile.</p>
-    </a>
+
+<a href="#" class="card">
+
+📜
+
+<h2>Ride History</h2>
+
+<p>Past rides.</p>
+
+</a>
+
+
+<a href="#" class="card">
+
+🚨
+
+<h2>Emergency SOS</h2>
+
+<p>Quick emergency alert.</p>
+
+</a>
+
+
+<a href="#" class="card">
+
+👤
+
+<h2>Profile</h2>
+
+<p>Manage account.</p>
+
+</a>
+
+</div>
 
 </div>
 
 </body>
-
 </html>
