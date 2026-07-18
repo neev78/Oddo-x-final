@@ -1,80 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Find Ride</title>
-
-<link rel="stylesheet"
-href="{{ url_for('static', filename='css/style.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMate - Find Ride</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
 
-<div class="ride-form">
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-car-tunnel"></i>
+            </div>
+            <div class="logo-text">
+                <h2>RouteMate</h2>
+                <span>Smart Carpooling Platform</span>
+            </div>
+        </div>
 
-<div class="ride-tabs">
+        <nav class="dashboard-navbar">
+            <a href="/create_ride"><i class="fas fa-plus"></i> Offer Ride</a>
+            <a href="/find_ride" class="active-tab"><i class="fas fa-magnifying-glass"></i> Find Ride</a>
+            <a href="/commute_buddy"><i class="fas fa-user-group"></i> Commute Buddy</a>
+            <a href="/ride_history"><i class="fas fa-history"></i> Ride History</a>
+            <a href="/sos" style="color: var(--danger);"><i class="fas fa-circle-exclamation"></i> Emergency SOS</a>
+        </nav>
 
-<a class="active-tab">Find Ride</a>
+        <a href="/logout" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+    </header>
 
-<a href="/create_ride">Offer Ride</a>
+    <main class="container" style="flex-grow: 1; padding: 40px 24px;">
+        <div class="ride-form glass-panel" style="max-width: 100%; margin: 0 0 40px 0;">
+            <div class="ride-tabs">
+                <a class="active-tab">Find Ride</a>
+                <a href="/create_ride">Offer Ride</a>
+            </div>
 
-</div>
+            <form onsubmit="event.preventDefault();" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group" style="grid-column: span 1;">
+                    <label for="search-pickup">Start Location</label>
+                    <div class="input-container">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input 
+                            type="text" 
+                            id="search-pickup" 
+                            placeholder="Search by starting point..." 
+                            oninput="filterRides()">
+                    </div>
+                </div>
 
-<form>
+                <div class="form-group" style="grid-column: span 1;">
+                    <label for="search-destination">Destination</label>
+                    <div class="input-container">
+                        <i class="fas fa-location-dot"></i>
+                        <input 
+                            type="text" 
+                            id="search-destination" 
+                            placeholder="Search by destination..." 
+                            oninput="filterRides()">
+                    </div>
+                </div>
+            </form>
+        </div>
 
-<label>Start Location</label>
+        <section class="rides-section">
+            <h2>Available Commutes</h2>
+            
+            <div class="rides-grid" id="rides-list-grid">
+                {% for ride in rides %}
+                <div class="ride-card glass-panel animate-fade">
+                    <div class="ride-card-header">
+                        <div class="ride-route">
+                            <span class="ride-location">
+                                <i class="fa-regular fa-circle-dot"></i> 
+                                <span class="ride-pickup-text">{{ ride.pickup }}</span>
+                            </span>
+                            <span class="ride-route-arrow"><i class="fas fa-arrow-down-long"></i></span>
+                            <span class="ride-location">
+                                <i class="fa-solid fa-location-dot"></i> 
+                                <span class="ride-dest-text">{{ ride.destination }}</span>
+                            </span>
+                        </div>
+                        <div class="ride-price">
+                            ₹{{ ride.price }}
+                            <span>per seat</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ride-details-list">
+                        <div class="ride-detail-item">
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <span>Date: {{ ride.date }}</span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-regular fa-clock"></i>
+                            <span>Time: {{ ride.time }}</span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-solid fa-car-side"></i>
+                            <span>Vehicle: {{ ride.vehicle }}</span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-solid fa-chair"></i>
+                            <span>Seats Available: {{ ride.seats }}</span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-regular fa-user"></i>
+                            <span>Driver: {{ ride.driver }}</span>
+                        </div>
+                    </div>
+                    
+                    <form action="/book_ride/{{ ride.id }}" method="POST" style="margin-top: auto; width: 100%;">
+                        <button type="submit" class="book-btn">
+                            <i class="fa-regular fa-circle-check"></i> Book Seat
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="no-rides">
+                    <i class="fa-solid fa-car-on"></i>
+                    <h3>No Active Commutes Found</h3>
+                    <p>There are no rides published at the moment. Try listing your commute to match with others!</p>
+                    <a href="/create_ride" class="primary-btn" style="margin-top: 15px;">
+                        <i class="fa-solid fa-plus"></i> Offer a Ride
+                    </a>
+                </div>
+                {% endfor %}
 
-<input
-type="text"
-placeholder="Sector 4 Office Tower">
+                <!-- No matches fallback (initially hidden, managed by script.js filterRides) -->
+                <div class="no-rides" id="no-rides-element" style="display: none;">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <h3>No Matching Commutes</h3>
+                    <p>No published rides match your search criteria. Try modifying your filters or starting points.</p>
+                </div>
+            </div>
+        </section>
+    </main>
 
-<label>Destination</label>
+    <footer>
+        <p>&copy; 2026 RouteMate Corporate Carpooling. All Rights Reserved.</p>
+    </footer>
 
-<input
-type="text"
-placeholder="Downtown Commuter Hub">
-
-<div class="two-fields">
-
-<div>
-
-<label>Date & Time</label>
-
-<input type="datetime-local">
-
-</div>
-
-<div>
-
-<label>Seat Requirement</label>
-
-<input
-type="number"
-placeholder="1">
-
-</div>
-
-</div>
-
-<label>
-
-<input type="checkbox">
-
-Recurring Ride
-
-</label>
-
-<button>
-
-Find Ride
-
-</button>
-
-</form>
-
-</div>
-
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-
 </html>

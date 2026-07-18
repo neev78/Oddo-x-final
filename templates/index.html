@@ -3,114 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RouteMate</title>
-
+    <title>RouteMate - Smart Carpooling for Workplace Commutes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
 
-<header class="top-navbar">
-
-    <div class="logo-area">
-    <div class="logo-text">
-        <h2>RouteMate</h2>
-        <span>SMART CARPOOLING PLATFORM</span>
-    </div>
-</div>
-    <nav class="menu">
-
-        <a class="active" href="/">Home</a>
-
-        <a href="#about">About</a>
-
-       <a href="#contact">Contact</a>
-
-    </nav>
-
-    <div class="buttons">
-
-        <a href="/login" class="login-btn">Log In</a>
-
-        <a href="/register" class="signup-btn">Sign Up</a>
-
-    </div>
-
-</header>
-
-
-<section class="hero">
-
-    <div class="hero-logo">
-
-<img src="{{ url_for('static', filename='images/routemate_logo.jpeg') }}"
-     class="hero-image">
-
-</div>
-<section id="about" class="info-section">
-
-    <h2>Why RouteMate?</h2>
-
-    <p>
-        RouteMate is a smart workplace carpooling platform that helps employees
-        travel together, save fuel costs, reduce traffic congestion and create
-        better workplace connections.
-    </p>
-
-</section>
-
-    <div class="hero-buttons">
-
-        <a href="/login" class="primary-btn">
-            Log In to Portal
-        </a>
-
-        <a href="/register" class="secondary-btn">
-            Sign Up for Account
-        </a>
-
-    </div>
-
-</section>
-<section id="contact" class="contact-section">
-
-    <h2>RouteMate Features</h2>
-
-    <div class="feature-grid">
-
-        <div class="feature-card">
-            <h3>Create Ride</h3>
-            <p>Create your own ride and offer empty seats to coworkers.</p>
+    <header class="top-navbar">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-car-tunnel"></i>
+            </div>
+            <div class="logo-text">
+                <h2>RouteMate</h2>
+                <span>Smart Carpooling Platform</span>
+            </div>
         </div>
-
-        <div class="feature-card">
-            <h3>Find Ride</h3>
-            <p>Search available rides going to your destination.</p>
+        
+        <nav class="menu">
+            <a class="active" href="/"><i class="fas fa-house"></i> Home</a>
+            <a href="#about"><i class="fas fa-circle-info"></i> About</a>
+            <a href="#contact"><i class="fas fa-address-book"></i> Contact</a>
+        </nav>
+        
+        <div class="buttons">
+            <a href="/login" class="login-btn"><i class="fas fa-right-to-bracket"></i> Log In</a>
+            <a href="/register" class="signup-btn"><i class="fas fa-user-plus"></i> Sign Up</a>
         </div>
+    </header>
 
-        <div class="feature-card">
-            <h3>Commute Buddy</h3>
-            <p>Connect with employees travelling on similar routes.</p>
-        </div>
+    <main style="flex-grow: 1;">
+        <section class="hero">
+            <div class="hero-logo">
+                <img src="{{ url_for('static', filename='images/routemate_logo.jpeg') }}" alt="RouteMate Logo" class="hero-image">
+            </div>
+            <h1>Smart Commuting for the Modern Workplace</h1>
+            <h3>Save Costs &bull; Reduce Emissions &bull; Connect</h3>
+            <p>
+                RouteMate brings coworkers together to share the ride. Optimize your daily commute, split travel costs, decrease parking congestion, and make networking part of your drive.
+            </p>
+            
+            <div class="hero-buttons">
+                <a href="/login" class="primary-btn">
+                    <i class="fas fa-right-to-bracket"></i> Log In to Portal
+                </a>
+                <a href="/register" class="secondary-btn">
+                    <i class="fas fa-user-plus"></i> Sign Up for Account
+                </a>
+            </div>
+        </section>
 
-        <div class="feature-card">
-            <h3>Emergency SOS</h3>
-            <p>Quick emergency assistance while travelling.</p>
-        </div>
+        <section id="about" class="info-section">
+            <div class="container">
+                <h2>Why Choose RouteMate?</h2>
+                <p>
+                    Built exclusively for workplace ecosystems, RouteMate matches employees driving similar routes. It provides a secure, verified network of commute partners, turning stressful daily commutes into opportunities for collaboration and cost savings.
+                </p>
+            </div>
+        </section>
 
-    </div>
+        <section id="features" class="contact-section">
+            <div class="container">
+                <h2>RouteMate Key Features</h2>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-car"></i></div>
+                        <h3>Offer Rides</h3>
+                        <p>Have empty seats in your car? Share your route, timings, and price to invite coworkers along.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-magnifying-glass"></i></div>
+                        <h3>Find Rides</h3>
+                        <p>Search available routes within the company database and secure a seat with a simple click.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-user-group"></i></div>
+                        <h3>Commute Buddy</h3>
+                        <p>Connect with teammates on similar schedules to establish regular commute cohorts.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
+                        <h3>Emergency SOS</h3>
+                        <p>Travel with confidence using real-time location sharing and emergency security broadcast triggers.</p>
+                    </div>
+                </div>
 
-    <br><br>
+                <div id="contact">
+                    <h3>Get in Touch</h3>
+                    <div class="contact-details">
+                        <span><i class="fas fa-envelope"></i> support@routemate.com</span>
+                        <span><i class="fas fa-phone"></i> +91-9876543210</span>
+                        <span><i class="fas fa-building"></i> Sector 4, Tech City</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-    <h3>Contact Us</h3>
+    <footer>
+        <p>&copy; 2026 RouteMate Corporate Carpooling. All Rights Reserved.</p>
+    </footer>
 
-    <p>Email : support@routemate.com</p>
-
-    <p>Phone : +91-9876543210</p>
-
-    <p>© 2026 RouteMate. All Rights Reserved.</p>
-
-</section>
-
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

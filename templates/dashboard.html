@@ -1,115 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Commute Buddy Dashboard</title>
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMate - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
 
-<header class="navbar">
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-car-tunnel"></i>
+            </div>
+            <div class="logo-text">
+                <h2>RouteMate</h2>
+                <span>Smart Carpooling Platform</span>
+            </div>
+        </div>
 
-    <div class="logo">
-        🚗 <span>Commute Buddy</span>
-    </div>
+        <nav class="dashboard-navbar">
+            <a href="/create_ride"><i class="fas fa-plus"></i> Offer Ride</a>
+            <a href="/find_ride"><i class="fas fa-magnifying-glass"></i> Find Ride</a>
+            <a href="/commute_buddy"><i class="fas fa-user-group"></i> Commute Buddy</a>
+            <a href="/ride_history"><i class="fas fa-history"></i> Ride History</a>
+            <a href="/sos" style="color: var(--danger);"><i class="fas fa-circle-exclamation"></i> Emergency SOS</a>
+        </nav>
 
-    <nav>
+        <a href="/logout" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+    </header>
 
-        <a href="/dashboard">Dashboard</a>
+    <main class="container" style="flex-grow: 1; padding-top: 40px; padding-bottom: 60px;">
+        <section class="hero" style="padding: 20px 0 40px;">
+            <h1 style="font-size: 42px;">Welcome to RouteMate, Commuter! 🚗</h1>
+            <p style="margin-bottom: 0;">Streamline your daily office commute. Choose an option below to get started.</p>
+        </section>
 
-        <a href="/create_ride">Create Ride</a>
+        <div class="dashboard-grid">
+            <a href="/create_ride" class="dashboard-card glass-panel">
+                <div class="icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <h2>Offer a Ride</h2>
+                <p>Publish your route and schedule to share empty seats with coworkers.</p>
+            </a>
 
-        <a href="/find_ride">Find Ride</a>
+            <a href="/find_ride" class="dashboard-card glass-panel">
+                <div class="icon">
+                    <i class="fas fa-magnifying-glass"></i>
+                </div>
+                <h2>Find a Ride</h2>
+                <p>Search active listings, check routes, and secure a ride to the office.</p>
+            </a>
 
-        <a href="#">Bookings</a>
+            <a href="/commute_buddy" class="dashboard-card glass-panel">
+                <div class="icon">
+                    <i class="fas fa-user-group"></i>
+                </div>
+                <h2>Commute Buddy</h2>
+                <p>Match with coworkers in your department for regular ride cohorts.</p>
+            </a>
 
-        <a href="#">Ride History</a>
+            <a href="/ride_history" class="dashboard-card glass-panel">
+                <div class="icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h2>Ride History</h2>
+                <p>View all your past and active commute booking statements.</p>
+            </a>
 
-        <a href="#">SOS</a>
+            <a href="/sos" class="dashboard-card sos-card glass-panel">
+                <div class="icon">
+                    <i class="fas fa-circle-exclamation"></i>
+                </div>
+                <h2>Emergency SOS</h2>
+                <p>Instantly broadcast location alerts to corporate security and dispatchers.</p>
+            </a>
+        </div>
+    </main>
 
-    </nav>
+    <footer>
+        <p>&copy; 2026 RouteMate Corporate Carpooling. All Rights Reserved.</p>
+    </footer>
 
-    <a href="/" class="logout-btn">Logout</a>
-
-</header>
-
-
-<div class="dashboard">
-
-<h1>Employee Dashboard</h1>
-
-<div class="card-container">
-
-<a href="/create_ride" class="card">
-
-🚗
-
-<h2>Create Ride</h2>
-
-<p>Offer a ride to coworkers.</p>
-
-</a>
-
-
-<a href="/find_ride" class="card">
-
-🔍
-
-<h2>Find Ride</h2>
-
-<p>Search available rides.</p>
-
-</a>
-
-
-<a href="#" class="card">
-
-📖
-
-<h2>Bookings</h2>
-
-<p>Your booked rides.</p>
-
-</a>
-
-
-<a href="#" class="card">
-
-📜
-
-<h2>Ride History</h2>
-
-<p>Past rides.</p>
-
-</a>
-
-
-<a href="#" class="card">
-
-🚨
-
-<h2>Emergency SOS</h2>
-
-<p>Quick emergency alert.</p>
-
-</a>
-
-
-<a href="#" class="card">
-
-👤
-
-<h2>Profile</h2>
-
-<p>Manage account.</p>
-
-</a>
-
-</div>
-
-</div>
-
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

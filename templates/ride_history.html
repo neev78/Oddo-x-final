@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMate - Ride History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-car-tunnel"></i>
+            </div>
+            <div class="logo-text">
+                <h2>RouteMate</h2>
+                <span>Smart Carpooling Platform</span>
+            </div>
+        </div>
+
+        <nav class="dashboard-navbar">
+            <a href="/create_ride"><i class="fas fa-plus"></i> Offer Ride</a>
+            <a href="/find_ride"><i class="fas fa-magnifying-glass"></i> Find Ride</a>
+            <a href="/commute_buddy"><i class="fas fa-user-group"></i> Commute Buddy</a>
+            <a href="/ride_history" class="active-tab"><i class="fas fa-history"></i> Ride History</a>
+            <a href="/sos" style="color: var(--danger);"><i class="fas fa-circle-exclamation"></i> Emergency SOS</a>
+        </nav>
+
+        <a href="/logout" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+    </header>
+
+    <main class="container" style="flex-grow: 1; padding: 40px 24px;">
+        <section class="hero" style="padding: 10px 0 30px;">
+            <h1>Your Ride History</h1>
+            <p>Track all the commutes you have booked on the platform.</p>
+        </section>
+
+        <div class="rides-section" style="padding-top: 10px;">
+            <div class="rides-grid">
+                {% for booking in bookings %}
+                <div class="ride-card glass-panel animate-fade">
+                    <div class="ride-card-header">
+                        <div class="ride-route">
+                            <span class="ride-location">
+                                <i class="fa-regular fa-circle-dot" style="color: var(--accent);"></i> 
+                                <span>{{ booking.pickup }}</span>
+                            </span>
+                            <span class="ride-route-arrow"><i class="fas fa-arrow-down-long"></i></span>
+                            <span class="ride-location">
+                                <i class="fa-solid fa-location-dot" style="color: var(--danger);"></i> 
+                                <span>{{ booking.destination }}</span>
+                            </span>
+                        </div>
+                        <div class="ride-price">
+                            ₹{{ booking.price }}
+                            <span>paid</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ride-details-list" style="margin-bottom: 0;">
+                        <div class="ride-detail-item">
+                            <i class="fa-regular fa-user"></i>
+                            <span>Passenger (Customer): <strong>{{ booking.customer }}</strong></span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <span>Date: {{ booking.date }}</span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-regular fa-clock"></i>
+                            <span>Time: {{ booking.time }}</span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-solid fa-car-side"></i>
+                            <span>Vehicle: {{ booking.vehicle }}</span>
+                        </div>
+                        <div class="ride-detail-item">
+                            <i class="fa-solid fa-user-tie"></i>
+                            <span>Driver: {{ booking.driver }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-rides">
+                    <i class="fa-solid fa-history"></i>
+                    <h3>No Ride History Found</h3>
+                    <p>You haven't booked any rides yet. Head over to Find Rides to book your first commute!</p>
+                    <a href="/find_ride" class="primary-btn" style="margin-top: 15px;">
+                        <i class="fa-solid fa-magnifying-glass"></i> Find a Ride
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 RouteMate Corporate Carpooling. All Rights Reserved.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
