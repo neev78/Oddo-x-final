@@ -1,44 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 
-    <meta charset="UTF-8">
-    <title>Find Ride</title>
+<title>Find Ride</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/style.css') }}">
 
 </head>
+
 <body>
 
-<h1>Available Rides</h1>
+<div class="ride-form">
 
-<div class="ride-container">
+<div class="ride-tabs">
 
-{% for ride in rides %}
+<a class="active-tab">Find Ride</a>
 
-<div class="ride-card">
-
-    <h2>🚗 {{ ride.pickup }} ➜ {{ ride.destination }}</h2>
-
-    <p><strong>📅 Date:</strong> {{ ride.date }}</p>
-
-    <p><strong>⏰ Time:</strong> {{ ride.time }}</p>
-
-    <p><strong>🚘 Vehicle:</strong> {{ ride.vehicle }}</p>
-
-    <p><strong>💺 Seats:</strong> {{ ride.seats }}</p>
-
-    <p><strong>💰 Price:</strong> ₹{{ ride.price }}</p>
-
-    <p><strong>👤 Driver:</strong> {{ ride.driver_email }}</p>
-
-    <button class="book-btn">Book Ride</button>
+<a href="/create_ride">Offer Ride</a>
 
 </div>
 
-{% endfor %}
+<form>
+
+<label>Start Location</label>
+
+<input
+type="text"
+placeholder="Sector 4 Office Tower">
+
+<label>Destination</label>
+
+<input
+type="text"
+placeholder="Downtown Commuter Hub">
+
+<div class="two-fields">
+
+<div>
+
+<label>Date & Time</label>
+
+<input type="datetime-local">
+
+</div>
+
+<div>
+
+<label>Seat Requirement</label>
+
+<input
+type="number"
+placeholder="1">
+
+</div>
+
+</div>
+
+<label>
+
+<input type="checkbox">
+
+Recurring Ride
+
+</label>
+
+<button>
+
+Find Ride
+
+</button>
+
+</form>
 
 </div>
 
 </body>
+
 </html>

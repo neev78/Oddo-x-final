@@ -1,42 +1,66 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
-<title>Create Ride</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <title>Create Ride</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
 
-<div class="ride-box">
+<div class="ride-form">
 
-<h1>Create Ride</h1>
+    <div class="ride-tabs">
+        <a href="/find_ride">Find Ride</a>
+        <a class="active-tab">Offer Ride</a>
+    </div>
 
-<form method="POST">
+    <form action="/create_ride" method="POST">
 
-<input type="text" name="pickup" placeholder="Pickup Location" required>
+        <label>Start Location</label>
+        <input type="text"
+               name="pickup"
+               placeholder="Sector 4 Office Tower">
 
-<input type="text" name="destination" placeholder="Destination" required>
+        <label>Destination</label>
+        <input type="text"
+               name="drop"
+               placeholder="Downtown Commuter Hub">
 
-<input type="date" name="date" required>
+        <div class="two-fields">
 
-<input type="time" name="time" required>
+            <div>
+                <label>Date & Time</label>
 
-<input type="number" name="seats" placeholder="Available Seats" required>
+                <input
+                type="datetime-local"
+                name="datetime">
+            </div>
 
-<input type="text" name="vehicle" placeholder="Vehicle Name" required>
+            <div>
+                <label>Available Seats</label>
 
-<input type="number" name="price" placeholder="Price Per Seat" required>
+                <input
+                type="number"
+                name="seats"
+                placeholder="1">
+            </div>
 
-<button>Create Ride</button>
+        </div>
 
-</form>
+        <label>Fare Per Seat</label>
+
+        <input
+        type="number"
+        name="fare"
+        placeholder="120">
+
+        <button>
+            Publish Ride
+        </button>
+
+    </form>
 
 </div>
 
 </body>
-
 </html>
