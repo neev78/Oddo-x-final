@@ -591,6 +591,57 @@ def api_ride_complete(booking_id):
 def test():
     return "Firebase Connected Successfully!"
 
+@app.route("/api/booking/<booking_id>")
+def api_booking_details(booking_id):
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    try:
+        doc = db.collection("Bookings").document(booking_id).get()
+        if not doc.exists:
+            return jsonify({"error": "Booking not found"}), 404
+        
+        booking = doc.to_dict()
+        booking["id"] = doc.id
+        
+        current_user = session["user"]
+        if booking.get("customer") != current_user and booking.get("driver") != current_user:
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        return jsonify(booking)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/bookings/active")
+def api_active_bookings():
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    try:
+        current_user = session["user"]
+        bookings = []
+        
+        # Get active bookings where user is rider
+        rider_docs = db.collection("Bookings").where("customer", "==", current_user).where("status", "==", "booked").stream()
+        for doc in rider_docs:
+            b = doc.to_dict()
+            b["id"] = doc.id
+            b["role"] = "rider"
+            bookings.append(b)
+            
+        # Get active bookings where user is driver
+        driver_docs = db.collection("Bookings").where("driver", "==", current_user).where("status", "==", "booked").stream()
+        for doc in driver_docs:
+            b = doc.to_dict()
+            b["id"] = doc.id
+            b["role"] = "driver"
+            if not any(x["id"] == b["id"] for x in bookings):
+                bookings.append(b)
+                
+        return jsonify({"bookings": bookings})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/map")
 def map_page():
     if "user" not in session:

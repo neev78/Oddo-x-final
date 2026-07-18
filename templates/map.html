@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMate - Live Ride Tracking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-car-tunnel"></i>
+            </div>
+            <div class="logo-text">
+                <h2>RouteMate</h2>
+                <span>Smart Carpooling Platform</span>
+            </div>
+        </div>
+
+        <nav class="dashboard-navbar">
+            <a href="/create_ride"><i class="fas fa-plus"></i> Offer Ride</a>
+            <a href="/find_ride"><i class="fas fa-magnifying-glass"></i> Find Ride</a>
+            <a href="/commute_buddy"><i class="fas fa-user-group"></i> Commute Buddy</a>
+            <a href="/ride_history"><i class="fas fa-history"></i> Ride History</a>
+            <a href="/wallet"><i class="fas fa-wallet"></i> Wallet</a>
+            <a href="/map" class="active-tab"><i class="fas fa-map-location-dot"></i> Live Map</a>
+            <a href="/sos" style="color: var(--danger);"><i class="fas fa-circle-exclamation"></i> Emergency SOS</a>
+        </nav>
+
+        <a href="/logout" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+    </header>
+
+    <main class="map-page-wrapper">
+        <div class="map-layout-container">
+            <!-- Sidebar: Tracking Status and Simulator Commands -->
+            <aside class="map-sidebar glass-panel">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-satellite-dish" style="color: var(--accent); margin-right: 8px;"></i>Live Tracking</h3>
+                    <p>Track active carpools in real-time</p>
+                </div>
+
+                <!-- Selector Dropdown (Populated via API) -->
+                <div class="sidebar-section">
+                    <label for="ride-selector">Select Active Ride</label>
+                    <div class="input-container select-container">
+                        <i class="fas fa-car-side" style="left: 14px; z-index: 10;"></i>
+                        <select id="ride-selector" class="custom-select">
+                            <option value="">-- Fetching active rides... --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Placeholder state when no ride is selected -->
+                <div id="no-ride-selected-placeholder" class="sidebar-placeholder-state animate-fade">
+                    <i class="fas fa-map-marked-alt placeholder-icon"></i>
+                    <h4>Select a Ride to Begin</h4>
+                    <p>Choose an active commute from the dropdown above, or click <strong>Track Ride</strong> from your Ride History page to simulate tracking.</p>
+                    <a href="/ride_history" class="secondary-btn" style="margin-top: 15px; width: 100%;">
+                        <i class="fas fa-history"></i> View Ride History
+                    </a>
+                </div>
+
+                <!-- Tracking Stats Panel (Hidden until selection) -->
+                <div id="tracking-stats-panel" class="tracking-stats animate-fade" style="display: none;">
+                    <div class="tracking-card">
+                        <div class="status-indicator">
+                            <span class="status-pulse-dot"></span>
+                            <span id="trip-status-text">Simulating Commute</span>
+                        </div>
+                        
+                        <!-- Route Stats -->
+                        <div class="route-info">
+                            <div class="route-point">
+                                <i class="fa-regular fa-circle-dot route-icon pickup-dot"></i>
+                                <div class="route-details">
+                                    <span class="label">Pickup Location</span>
+                                    <span id="stat-pickup-name" class="val">--</span>
+                                </div>
+                            </div>
+                            <div class="route-line-dashed"></div>
+                            <div class="route-point">
+                                <i class="fa-solid fa-location-dot route-icon dest-dot"></i>
+                                <div class="route-details">
+                                    <span class="label">Destination</span>
+                                    <span id="stat-dest-name" class="val">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card glass-panel">
+                            <i class="fa-regular fa-clock metric-icon" style="color: var(--accent);"></i>
+                            <span class="metric-val" id="metric-eta">--</span>
+                            <span class="metric-label">Est. Arrival</span>
+                        </div>
+                        <div class="metric-card glass-panel">
+                            <i class="fa-solid fa-road metric-icon" style="color: var(--warning);"></i>
+                            <span class="metric-val" id="metric-distance">--</span>
+                            <span class="metric-label">Remaining</span>
+                        </div>
+                        <div class="metric-card glass-panel">
+                            <i class="fa-solid fa-gauge-high metric-icon" style="color: var(--success);"></i>
+                            <span class="metric-val" id="metric-speed">--</span>
+                            <span class="metric-label">Current Speed</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="progress-container">
+                        <div class="progress-bar-header">
+                            <span>Ride Progress</span>
+                            <span id="progress-percent-text">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div id="progress-indicator-fill" class="progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Card -->
+                    <div class="driver-card glass-panel">
+                        <div class="driver-avatar" id="driver-avatar-initials">--</div>
+                        <div class="driver-info">
+                            <h4 id="driver-name-text">--</h4>
+                            <p id="vehicle-info-text">--</p>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Controls -->
+                    <div class="sidebar-section simulation-controls">
+                        <label>Simulation Speed</label>
+                        <div class="simulation-speed-btn-group">
+                            <button class="speed-btn active" data-speed="1">1x</button>
+                            <button class="speed-btn" data-speed="2">2x</button>
+                            <button class="speed-btn" data-speed="5">5x</button>
+                            <button class="speed-btn" data-speed="10">10x</button>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button id="toggle-sim-btn" class="primary-btn" style="flex: 1;">
+                                <i class="fas fa-pause"></i> Pause Ride
+                            </button>
+                            <button id="reset-sim-btn" class="secondary-btn" title="Restart Ride">
+                                <i class="fas fa-rotate-left"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Emergency and Share Options -->
+                    <div class="safety-actions">
+                        <button class="share-btn secondary-btn" onclick="shareLiveLocation()">
+                            <i class="fas fa-share-nodes"></i> Share Live Location
+                        </button>
+                        <button class="sos-alert-btn danger" onclick="triggerSOS()">
+                            <i class="fas fa-circle-exclamation"></i> Emergency SOS
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Area -->
+            <div class="map-view-pane">
+                <div id="map-container">
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 RouteMate Corporate Carpooling. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script>
+        // Alert share function
+        function shareLiveLocation() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                showModal(
+                    'Link Copied! 🔗',
+                    'Live tracking URL has been copied to your clipboard. Share it with family or coworkers for real-time safety monitoring.',
+                    'success'
+                );
+            }).catch(err => {
+                showModal('Share Error', 'Could not copy link to clipboard.', 'error');
+            });
+        }
+    </script>
+</body>
+</html>
