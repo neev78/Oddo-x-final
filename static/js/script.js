@@ -215,3 +215,101 @@ function filterRides() {
         }
     }
 }
+
+// ─────────────────────────────────────────────
+// Global Ride Payment Prompt (Forces payment when driver ends ride)
+// ─────────────────────────────────────────────
+let hasShownPaymentModal = false;
+
+async function checkPendingPaymentsGlobally() {
+    try {
+        const res = await fetch('/api/wallet/pending-payments');
+        if (!res.ok) return; 
+        const data = await res.json();
+        
+        if (data.pending && data.pending.length > 0 && !hasShownPaymentModal) {
+            hasShownPaymentModal = true;
+            const booking = data.pending[0];
+            
+            showModal('Ride Ended', '', 'info');
+            
+            const modalContent = `
+                <div style="text-align: left; margin-top: 15px;">
+                    <p style="margin-bottom: 10px; color: var(--text-main);">Your ride from <strong>${booking.pickup}</strong> to <strong>${booking.destination}</strong> has ended.</p>
+                    <p style="font-size: 18px; font-weight: bold; margin-bottom: 20px; color: var(--text-main);">Fare to pay: ₹${booking.price}</p>
+                    <button class="primary-btn" style="width: 100%; margin-bottom: 10px;" onclick="processGlobalPayment('${booking.id}', ${booking.price}, this)">
+                        <i class="fas fa-wallet"></i> Pay ₹${booking.price} from Wallet
+                    </button>
+                </div>
+            `;
+            
+            // Inject custom HTML and hide the dismiss button so they are forced to act
+            document.getElementById('modal-desc').innerHTML = modalContent;
+            document.getElementById('modal-close-btn').style.display = 'none';
+        }
+    } catch (e) {
+        // fail silently
+    }
+}
+
+async function processGlobalPayment(bookingId, price, btn) {
+    try {
+        // 1. Verify balance first
+        const balRes = await fetch('/api/wallet/balance');
+        const balData = await balRes.json();
+
+        if (balData.error) {
+            alert('Could not retrieve your wallet balance.');
+            return;
+        }
+
+        const balance = parseFloat(balData.balance) || 0;
+        const fare = parseFloat(price) || 0;
+
+        // Warning message if balance is not enough
+        if (balance < fare) {
+            const deficit = fare - balance;
+            alert(`Insufficient Balance ⚠️\n\nYou need ₹${deficit} more to pay for this ride. (Current Balance: ₹${balance}, Fare: ₹${fare}).\n\nRedirecting to wallet to recharge...`);
+            window.location.href = '/wallet';
+            return;
+        }
+
+        // 2. Process payment
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+        btn.disabled = true;
+
+        const res = await fetch('/api/wallet/pay-ride', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ booking_id: bookingId, method: 'Wallet' })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('modal-title').innerText = 'Payment Successful! ✅';
+            document.getElementById('modal-desc').innerHTML = `<p style="margin-top: 15px; color: var(--text-main);">₹${fare} has been paid. Your new balance is ₹${data.newBalance}.</p>`;
+            document.getElementById('modal-close-btn').style.display = 'block'; // Allow dismiss
+            document.getElementById('modal-icon-container').className = 'modal-icon success';
+            document.getElementById('modal-icon').className = 'fas fa-check';
+            
+            // Reload page after a delay to clear the banner
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            alert('Payment Failed: ' + (data.error || 'Unknown error'));
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+
+    } catch (err) {
+        alert('An error occurred during payment. Please try again.');
+        btn.disabled = false;
+    }
+}
+
+// Start polling for pending payments every 3 seconds if we are not on login/landing page
+if (window.location.pathname !== '/login' && window.location.pathname !== '/' && window.location.pathname !== '/register') {
+    setInterval(checkPendingPaymentsGlobally, 3000);
+    setTimeout(checkPendingPaymentsGlobally, 1000); 
+}

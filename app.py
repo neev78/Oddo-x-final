@@ -1,9 +1,38 @@
 from database.firebase import db
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
+from google.cloud.firestore_v1 import transactional
+from google.cloud import firestore as firestore_module
+import datetime
+import uuid
 
 app = Flask(__name__)
 app.secret_key = "hackathon_secret_key"
 
+# ─────────────────────────────────────────────
+# Helper: get current user's Firestore doc ref
+# ─────────────────────────────────────────────
+def get_user_ref():
+    """Return (doc_ref, doc_dict) for the logged-in user, or (None, None)."""
+    if "user" not in session:
+        return None, None
+    email = session["user"]
+    users = db.collection("Users").where("email", "==", email).stream()
+    for u in users:
+        return db.collection("Users").document(u.id), u.to_dict()
+    return None, None
+
+
+def get_user_ref_by_email(email):
+    """Return doc_ref for a user by email."""
+    users = db.collection("Users").where("email", "==", email).stream()
+    for u in users:
+        return db.collection("Users").document(u.id)
+    return None
+
+
+# ─────────────────────────────────────────────
+# Existing Routes (unchanged)
+# ─────────────────────────────────────────────
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -50,7 +79,8 @@ def register():
             "employee_id": request.form["employee_id"],
             "email": email,
             "phone": request.form["phone"],
-            "password": request.form["password"]
+            "password": request.form["password"],
+            "walletBalance": 500  # Default wallet balance for demo
         }
 
         db.collection("Users").add(user_data)
@@ -165,7 +195,9 @@ def book_ride(ride_id):
         "time": ride.get("time"),
         "price": ride.get("price"),
         "driver": ride.get("driver"),
-        "ride_id": ride_id
+        "ride_id": ride_id,
+        "status": "booked",
+        "paymentStatus": "not_applicable"
     }
     db.collection("Bookings").add(booking)
     
@@ -180,19 +212,307 @@ def book_ride(ride_id):
 def ride_history():
     if "user" not in session:
         return redirect("/login")
-        
+    
+    current_user = session["user"]
     bookings = []
-    docs = db.collection("Bookings").where("customer", "==", session["user"]).stream()
+
+    # Get bookings where user is the customer
+    customer_docs = db.collection("Bookings").where("customer", "==", current_user).stream()
+    for doc in customer_docs:
+        b = doc.to_dict()
+        b["id"] = doc.id
+        b["user_role"] = "rider"
+        bookings.append(b)
+
+    # Get bookings where user is the driver
+    driver_docs = db.collection("Bookings").where("driver", "==", current_user).stream()
+    for doc in driver_docs:
+        b = doc.to_dict()
+        b["id"] = doc.id
+        b["user_role"] = "driver"
+        # Avoid duplicates if user is both driver and customer (self-ride)
+        if not any(existing["id"] == b["id"] for existing in bookings):
+            bookings.append(b)
+        
+    return render_template("ride_history.html", bookings=bookings, current_user=current_user)
+
+
+# ─────────────────────────────────────────────
+# WALLET FEATURE ROUTES
+# ─────────────────────────────────────────────
+
+@app.route("/wallet")
+def wallet():
+    """Render wallet page. Auto-initialize walletBalance if missing."""
+    if "user" not in session:
+        return redirect("/login")
+
+    user_ref, user_data = get_user_ref()
+    if user_ref is None:
+        return redirect("/login")
+
+    # Auto-initialize walletBalance if it doesn't exist
+    if "walletBalance" not in user_data or user_data["walletBalance"] is None:
+        user_ref.update({"walletBalance": 500})
+
+    return render_template("wallet.html")
+
+
+@app.route("/api/wallet/balance")
+def api_wallet_balance():
+    """JSON endpoint returning current wallet balance."""
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    user_ref, user_data = get_user_ref()
+    if user_ref is None:
+        return jsonify({"error": "User not found"}), 404
+
+    balance = user_data.get("walletBalance", 0)
+    name = user_data.get("name", "User")
+    return jsonify({"balance": balance, "name": name})
+
+
+@app.route("/api/wallet/recharge", methods=["POST"])
+def api_wallet_recharge():
+    """Recharge wallet using Firestore transaction for atomicity."""
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    amount = data.get("amount", 0)
+    method = data.get("method", "UPI")
+
+    try:
+        amount = float(amount)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid amount"}), 400
+
+    if amount <= 0:
+        return jsonify({"error": "Amount must be positive"}), 400
+
+    if amount > 10000:
+        return jsonify({"error": "Maximum recharge is ₹10,000"}), 400
+
+    user_ref, _ = get_user_ref()
+    if user_ref is None:
+        return jsonify({"error": "User not found"}), 404
+
+    # Atomic recharge using Firestore transaction
+    transaction = db.transaction()
+
+    @firestore_module.transactional
+    def recharge_in_transaction(txn, ref, amt, mth):
+        snapshot = ref.get(transaction=txn)
+        current_balance = snapshot.get("walletBalance") or 0
+        new_balance = current_balance + amt
+
+        txn.update(ref, {"walletBalance": new_balance})
+
+        # Log transaction in subcollection
+        txn_ref = ref.collection("transactions").document()
+        txn.set(txn_ref, {
+            "type": "recharge",
+            "amount": amt,
+            "method": mth,
+            "relatedRideId": None,
+            "timestamp": firestore_module.SERVER_TIMESTAMP,
+            "status": "success"
+        })
+
+        return new_balance
+
+    try:
+        new_balance = recharge_in_transaction(transaction, user_ref, amount, method)
+        return jsonify({"success": True, "newBalance": new_balance})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/wallet/transactions")
+def api_wallet_transactions():
+    """Return recent transactions for the current user."""
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    user_ref, _ = get_user_ref()
+    if user_ref is None:
+        return jsonify({"error": "User not found"}), 404
+
+    txns = []
+    docs = user_ref.collection("transactions").order_by(
+        "timestamp", direction=firestore_module.Query.DESCENDING
+    ).limit(50).stream()
+
+    for doc in docs:
+        t = doc.to_dict()
+        t["id"] = doc.id
+        # Convert timestamp to string for JSON serialization
+        if t.get("timestamp"):
+            t["timestamp"] = t["timestamp"].isoformat()
+        else:
+            t["timestamp"] = None
+        txns.append(t)
+
+    return jsonify({"transactions": txns})
+
+
+@app.route("/api/wallet/pending-payments")
+def api_wallet_pending_payments():
+    """Return bookings with status=completed and paymentStatus=pending for the current rider."""
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    current_user = session["user"]
+    pending = []
+
+    docs = db.collection("Bookings").where("customer", "==", current_user).where(
+        "status", "==", "completed"
+    ).where("paymentStatus", "==", "pending").stream()
+
     for doc in docs:
         b = doc.to_dict()
         b["id"] = doc.id
-        bookings.append(b)
-        
-    return render_template("ride_history.html", bookings=bookings)
+        pending.append(b)
+
+    return jsonify({"pending": pending})
+
+
+@app.route("/api/wallet/pay-ride", methods=["POST"])
+def api_wallet_pay_ride():
+    """Atomic Firestore transaction: deduct from rider, credit driver, log both."""
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    booking_id = data.get("booking_id")
+    method = data.get("method", "UPI")
+
+    if not booking_id:
+        return jsonify({"error": "Missing booking_id"}), 400
+
+    # Fetch booking
+    booking_ref = db.collection("Bookings").document(booking_id)
+    booking_doc = booking_ref.get()
+
+    if not booking_doc.exists:
+        return jsonify({"error": "Booking not found"}), 404
+
+    booking = booking_doc.to_dict()
+
+    if booking.get("paymentStatus") == "paid":
+        return jsonify({"error": "Already paid"}), 400
+
+    try:
+        fare = float(booking.get("price", 0))
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid fare amount"}), 400
+
+    rider_email = booking.get("customer")
+    driver_email = booking.get("driver")
+
+    rider_ref = get_user_ref_by_email(rider_email)
+    driver_ref = get_user_ref_by_email(driver_email)
+
+    if rider_ref is None or driver_ref is None:
+        return jsonify({"error": "Rider or driver not found"}), 404
+
+    # Atomic payment transaction
+    transaction = db.transaction()
+
+    @firestore_module.transactional
+    def pay_in_transaction(txn, r_ref, d_ref, b_ref, fare_amount, ride_id, mth):
+        # Read both balances inside the transaction
+        rider_snap = r_ref.get(transaction=txn)
+        driver_snap = d_ref.get(transaction=txn)
+
+        rider_balance = rider_snap.get("walletBalance") or 0
+        driver_balance = driver_snap.get("walletBalance") or 0
+
+        if rider_balance < fare_amount:
+            raise ValueError(f"Insufficient balance. You have ₹{rider_balance} but need ₹{fare_amount}")
+
+        # Deduct from rider, credit driver
+        txn.update(r_ref, {"walletBalance": rider_balance - fare_amount})
+        txn.update(d_ref, {"walletBalance": driver_balance + fare_amount})
+
+        # Log ride_payment_sent in rider's subcollection
+        rider_txn_ref = r_ref.collection("transactions").document()
+        txn.set(rider_txn_ref, {
+            "type": "ride_payment_sent",
+            "amount": fare_amount,
+            "method": mth,
+            "relatedRideId": ride_id,
+            "timestamp": firestore_module.SERVER_TIMESTAMP,
+            "status": "success"
+        })
+
+        # Log ride_payment_received in driver's subcollection
+        driver_txn_ref = d_ref.collection("transactions").document()
+        txn.set(driver_txn_ref, {
+            "type": "ride_payment_received",
+            "amount": fare_amount,
+            "method": mth,
+            "relatedRideId": ride_id,
+            "timestamp": firestore_module.SERVER_TIMESTAMP,
+            "status": "success"
+        })
+
+        # Mark booking as paid
+        txn.update(b_ref, {"paymentStatus": "paid"})
+
+        return rider_balance - fare_amount
+
+    try:
+        new_balance = pay_in_transaction(
+            transaction, rider_ref, driver_ref, booking_ref,
+            fare, booking.get("ride_id", booking_id), method
+        )
+        return jsonify({"success": True, "newBalance": new_balance})
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/ride/complete/<booking_id>", methods=["POST"])
+def api_ride_complete(booking_id):
+    """Driver marks a ride as completed, triggering payment-pending status."""
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    booking_ref = db.collection("Bookings").document(booking_id)
+    booking_doc = booking_ref.get()
+
+    if not booking_doc.exists:
+        return jsonify({"error": "Booking not found"}), 404
+
+    booking = booking_doc.to_dict()
+
+    # Only the driver can mark as completed
+    if booking.get("driver") != session["user"]:
+        return jsonify({"error": "Only the driver can complete a ride"}), 403
+
+    if booking.get("status") == "completed":
+        return jsonify({"error": "Ride already completed"}), 400
+
+    booking_ref.update({
+        "status": "completed",
+        "paymentStatus": "pending"
+    })
+
+    return jsonify({"success": True})
+
 
 @app.route("/test")
 def test():
     return "Firebase Connected Successfully!"
+
+@app.route("/map")
+def map_page():
+    if "user" not in session:
+        return redirect("/login")
+    return render_template("map.html")    
 
 if __name__ == "__main__":
     app.run(debug=True)

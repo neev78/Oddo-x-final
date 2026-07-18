@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMate - Wallet</title>
+    <meta name="description" content="Manage your RouteMate wallet — recharge balance, pay for rides, and view transaction history.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-car-tunnel"></i>
+            </div>
+            <div class="logo-text">
+                <h2>RouteMate</h2>
+                <span>Smart Carpooling Platform</span>
+            </div>
+        </div>
+
+        <nav class="dashboard-navbar">
+            <a href="/create_ride"><i class="fas fa-plus"></i> Offer Ride</a>
+            <a href="/find_ride"><i class="fas fa-magnifying-glass"></i> Find Ride</a>
+            <a href="/commute_buddy"><i class="fas fa-user-group"></i> Commute Buddy</a>
+            <a href="/ride_history"><i class="fas fa-history"></i> Ride History</a>
+            <a href="/wallet" class="active-tab"><i class="fas fa-wallet"></i> Wallet</a>
+            <a href="/sos" style="color: var(--danger);"><i class="fas fa-circle-exclamation"></i> Emergency SOS</a>
+        </nav>
+
+        <a href="/logout" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+    </header>
+
+    <main class="container" style="flex-grow: 1; padding: 40px 24px;">
+
+        <!-- ═══════════ PENDING PAYMENT BANNER ═══════════ -->
+        <div id="pending-payments-section" style="display: none;"></div>
+
+        <!-- ═══════════ TOP ROW: Balance + Recharge ═══════════ -->
+        <div class="wallet-top-grid">
+            <!-- Balance Card -->
+            <div class="wallet-balance-card glass-panel">
+                <div class="balance-header">
+                    <div class="balance-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <span class="balance-label">Available Balance</span>
+                </div>
+                <div class="balance-amount">
+                    <span class="currency">₹</span>
+                    <span id="wallet-balance-value" class="balance-number">--</span>
+                </div>
+                <div class="balance-user" id="wallet-user-name">Loading...</div>
+                <div class="balance-sync">
+                    <i class="fas fa-circle-notch fa-spin" id="sync-icon" style="display: none;"></i>
+                    <span id="sync-status">Syncing...</span>
+                </div>
+            </div>
+
+            <!-- Recharge Panel -->
+            <div class="wallet-recharge-panel glass-panel">
+                <h3 class="recharge-title"><i class="fas fa-bolt" style="color: var(--warning); margin-right: 8px;"></i>Quick Recharge</h3>
+                
+                <!-- Quick Amount Chips -->
+                <div class="amount-chips">
+                    <button class="chip" onclick="setAmount(100)">₹100</button>
+                    <button class="chip" onclick="setAmount(200)">₹200</button>
+                    <button class="chip" onclick="setAmount(500)">₹500</button>
+                    <button class="chip" onclick="setAmount(1000)">₹1000</button>
+                    <button class="chip" onclick="setAmount(2000)">₹2000</button>
+                </div>
+
+                <!-- Custom Amount -->
+                <div class="form-group" style="margin-top: 16px;">
+                    <label for="recharge-amount">Enter Amount</label>
+                    <div class="input-container">
+                        <i class="fas fa-indian-rupee-sign"></i>
+                        <input type="number" id="recharge-amount" placeholder="Enter amount..." min="1" max="10000">
+                    </div>
+                </div>
+
+                <!-- Payment Method Tabs -->
+                <div class="payment-method-tabs">
+                    <button class="method-tab active" id="tab-upi" onclick="selectMethod('UPI')">
+                        <i class="fas fa-mobile-screen-button"></i> UPI
+                    </button>
+                    <button class="method-tab" id="tab-qr" onclick="selectMethod('QR')">
+                        <i class="fas fa-qrcode"></i> QR Code
+                    </button>
+                </div>
+
+                <!-- UPI Payment Section -->
+                <div id="upi-section" class="payment-section">
+                    <div class="form-group">
+                        <label for="upi-id">UPI ID</label>
+                        <div class="input-container">
+                            <i class="fas fa-at"></i>
+                            <input type="text" id="upi-id" placeholder="yourname@bank">
+                        </div>
+                    </div>
+                    <button class="primary-btn recharge-btn" id="upi-pay-btn" onclick="processRecharge()">
+                        <i class="fas fa-paper-plane"></i> Pay via UPI
+                    </button>
+                </div>
+
+                <!-- QR Code Section -->
+                <div id="qr-section" class="payment-section" style="display: none;">
+                    <div class="qr-display-area" id="qr-display-area">
+                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Scan this QR code to pay</p>
+                        <div id="qr-code-container" class="qr-code-box"></div>
+                    </div>
+                    <button class="primary-btn recharge-btn" id="qr-confirm-btn" onclick="processRecharge()" style="margin-top: 16px;">
+                        <i class="fas fa-check-circle"></i> Confirm Payment Received
+                    </button>
+                </div>
+
+                <!-- Processing Overlay -->
+                <div id="recharge-processing" class="processing-overlay" style="display: none;">
+                    <div class="processing-spinner">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                    </div>
+                    <p id="processing-text">Verifying payment...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ TRANSACTION HISTORY ═══════════ -->
+        <div class="wallet-history-section glass-panel">
+            <div class="history-header">
+                <h3><i class="fas fa-receipt" style="color: var(--primary); margin-right: 8px;"></i>Transaction History</h3>
+                <button class="secondary-btn" onclick="fetchTransactions()" style="padding: 6px 14px; font-size: 13px;">
+                    <i class="fas fa-arrows-rotate"></i> Refresh
+                </button>
+            </div>
+            <div id="transactions-list" class="transactions-list">
+                <div class="transactions-loading">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                    <p>Loading transactions...</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 RouteMate Corporate Carpooling. All Rights Reserved.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="{{ url_for('static', filename='js/wallet.js') }}"></script>
+</body>
+</html>

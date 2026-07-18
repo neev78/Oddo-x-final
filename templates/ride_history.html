@@ -25,6 +25,7 @@
             <a href="/find_ride"><i class="fas fa-magnifying-glass"></i> Find Ride</a>
             <a href="/commute_buddy"><i class="fas fa-user-group"></i> Commute Buddy</a>
             <a href="/ride_history" class="active-tab"><i class="fas fa-history"></i> Ride History</a>
+            <a href="/wallet"><i class="fas fa-wallet"></i> Wallet</a>
             <a href="/sos" style="color: var(--danger);"><i class="fas fa-circle-exclamation"></i> Emergency SOS</a>
         </nav>
 
@@ -57,14 +58,18 @@
                         </div>
                         <div class="ride-price">
                             ₹{{ booking.price }}
-                            <span>paid</span>
+                            <span>total fare</span>
                         </div>
                     </div>
                     
                     <div class="ride-details-list" style="margin-bottom: 0;">
                         <div class="ride-detail-item">
                             <i class="fa-regular fa-user"></i>
-                            <span>Passenger (Customer): <strong>{{ booking.customer }}</strong></span>
+                            {% if booking.user_role == 'driver' %}
+                            <span>Passenger: <strong>{{ booking.customer }}</strong></span>
+                            {% else %}
+                            <span>Driver: <strong>{{ booking.driver }}</strong></span>
+                            {% endif %}
                         </div>
                         <div class="ride-detail-item">
                             <i class="fa-regular fa-calendar-days"></i>
@@ -78,9 +83,53 @@
                             <i class="fa-solid fa-car-side"></i>
                             <span>Vehicle: {{ booking.vehicle }}</span>
                         </div>
+                        {% if booking.seats_booked %}
                         <div class="ride-detail-item">
-                            <i class="fa-solid fa-user-tie"></i>
-                            <span>Driver: {{ booking.driver }}</span>
+                            <i class="fa-solid fa-chair"></i>
+                            <span>Seats Booked: {{ booking.seats_booked }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="ride-detail-item">
+                            <i class="fa-solid fa-tag"></i>
+                            <span>Role: <strong>{{ 'Driver' if booking.user_role == 'driver' else 'Rider' }}</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar: Status Badges + Buttons -->
+                    <div class="ride-action-bar">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <!-- Ride Status Badge -->
+                            {% if booking.status == 'completed' %}
+                                <span class="ride-status-badge badge-completed"><i class="fas fa-check-circle"></i> Completed</span>
+                            {% else %}
+                                <span class="ride-status-badge badge-booked"><i class="fas fa-clock"></i> Booked</span>
+                            {% endif %}
+
+                            <!-- Payment Status Badge -->
+                            {% if booking.paymentStatus == 'paid' %}
+                                <span class="ride-status-badge badge-paid"><i class="fas fa-check-circle"></i> Paid</span>
+                            {% elif booking.paymentStatus == 'pending' %}
+                                <span class="ride-status-badge badge-pending"><i class="fas fa-exclamation-circle"></i> Payment Pending</span>
+                            {% endif %}
+                        </div>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <!-- End Ride Button (Visible to both for demo) -->
+                            {% if booking.status != 'completed' %}
+                                <button class="complete-ride-btn" onclick="completeRide('{{ booking.id }}', this)">
+                                    <i class="fas fa-flag-checkered"></i> End Ride
+                                </button>
+                            {% endif %}
+
+                            <!-- Rider: Pay via Wallet Button -->
+                            {% if booking.user_role == 'rider' and booking.paymentStatus == 'pending' %}
+                                <button class="pay-now-btn" onclick="payForRideDirect('{{ booking.id }}', '{{ booking.price }}', this)">
+                                    <i class="fas fa-wallet"></i> Pay via Wallet
+                                </button>
+                                <a href="/wallet" class="secondary-btn" style="padding: 8px 16px; font-size: 13px; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-bolt"></i> Recharge
+                                </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -102,6 +151,98 @@
         <p>&copy; 2026 RouteMate Corporate Carpooling. All Rights Reserved.</p>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=2"></script>
+    <script>
+        // Complete Ride — Driver action
+        async function completeRide(bookingId, btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Ending...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/ride/complete/${bookingId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showModal(
+                        'Ride Completed! ✅',
+                        'The ride has been marked as completed. The rider will now be prompted to make payment.',
+                        'success'
+                    );
+                    // Reload to refresh status badges
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showModal('Error', data.error || 'Could not complete ride.', 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showModal('Network Error', 'Could not connect to the server.', 'error');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // Direct Ride Payment — Rider action
+        async function payForRideDirect(bookingId, fare, btn) {
+            try {
+                // 1. Fetch balance first to verify
+                const balRes = await fetch('/api/wallet/balance');
+                const balData = await balRes.json();
+
+                if (balData.error) {
+                    showModal('Error', 'Could not retrieve your wallet balance.', 'error');
+                    return;
+                }
+
+                const balance = parseFloat(balData.balance) || 0;
+                const price = parseFloat(fare) || 0;
+
+                if (balance < price) {
+                    const deficit = price - balance;
+                    showModal(
+                        'Insufficient Balance ⚠️',
+                        `Insufficient wallet balance. Please recharge ₹${deficit} more to complete payment.`,
+                        'error'
+                    );
+                    return;
+                }
+
+                // 2. Proceed with payment
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Paying...';
+                btn.disabled = true;
+
+                const res = await fetch('/api/wallet/pay-ride', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: bookingId, method: 'Wallet' })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showModal(
+                        'Payment Successful! ✅',
+                        `₹${price} has been paid from your wallet. Your new balance is ₹${data.newBalance}.`,
+                        'success'
+                    );
+                    // Reload to refresh status badges
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showModal('Payment Failed', data.error || 'Could not process payment.', 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }
+
+            } catch (err) {
+                showModal('Error', 'An error occurred during payment. Please try again.', 'error');
+            }
+        }
+    </script>
 </body>
 </html>
