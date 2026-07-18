@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>Find Ride</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+
+<h1>Available Rides</h1>
+
+<div class="ride-container">
+
+{% for ride in rides %}
+
+<div class="ride-card">
+
+    <h2>🚗 {{ ride.pickup }} ➜ {{ ride.destination }}</h2>
+
+    <p><strong>📅 Date:</strong> {{ ride.date }}</p>
+
+    <p><strong>⏰ Time:</strong> {{ ride.time }}</p>
+
+    <p><strong>🚘 Vehicle:</strong> {{ ride.vehicle }}</p>
+
+    <p><strong>💺 Seats:</strong> {{ ride.seats }}</p>
+
+    <p><strong>💰 Price:</strong> ₹{{ ride.price }}</p>
+
+    <p><strong>👤 Driver:</strong> {{ ride.driver_email }}</p>
+
+    <button class="book-btn">Book Ride</button>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</body>
+</html>

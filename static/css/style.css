@@ -152,3 +152,191 @@ footer{
     text-decoration:none;
     font-weight:bold;
 }
+body{
+    margin:0;
+    font-family:Poppins,sans-serif;
+    background:#f4f7fb;
+}
+
+h1{
+    text-align:center;
+    margin-top:30px;
+    color:#1f3c88;
+}
+
+.dashboard-container{
+
+    width:90%;
+    margin:40px auto;
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+
+    gap:25px;
+
+}
+
+.card{
+
+    background:white;
+
+    border-radius:15px;
+
+    padding:30px;
+
+    text-align:center;
+
+    text-decoration:none;
+
+    color:#333;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.15);
+
+    transition:.3s;
+
+}
+
+.card:hover{
+
+    transform:translateY(-8px);
+
+    background:#1f3c88;
+
+    color:white;
+
+}
+
+.card h2{
+
+    font-size:50px;
+
+}
+
+.card h3{
+
+    margin-top:10px;
+
+}
+.ride-box{
+
+    width:450px;
+
+    margin:50px auto;
+
+    background:white;
+
+    padding:40px;
+
+    border-radius:15px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.15);
+
+}
+
+.ride-box input{
+
+    width:100%;
+
+    padding:12px;
+
+    margin:10px 0;
+
+    border-radius:8px;
+
+    border:1px solid #ccc;
+
+}
+
+.ride-box button{
+
+    width:100%;
+
+    padding:12px;
+
+    background:#1f3c88;
+
+    color:white;
+
+    border:none;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+}
+
+/* FIND RIDE */
+
+.ride-container{
+
+    width:90%;
+    margin:40px auto;
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+
+    gap:25px;
+
+}
+
+.ride-card{
+
+    background:#fff;
+
+    border-radius:15px;
+
+    padding:25px;
+
+    box-shadow:0 10px 20px rgba(0,0,0,.15);
+
+    transition:.3s;
+
+}
+
+.ride-card:hover{
+
+    transform:translateY(-8px);
+
+}
+
+.ride-card h2{
+
+    color:#1f3c88;
+
+}
+
+.ride-card p{
+
+    margin:10px 0;
+
+}
+
+.book-btn{
+
+    width:100%;
+
+    padding:12px;
+
+    margin-top:15px;
+
+    background:#28a745;
+
+    color:white;
+
+    border:none;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
+.book-btn:hover{
+
+    background:#218838;
+
+}

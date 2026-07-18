@@ -1,31 +1,42 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Create Ride</title>
+
+<title>Create Ride</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
 
-<h2>Create Ride</h2>
+<div class="ride-box">
+
+<h1>Create Ride</h1>
 
 <form method="POST">
 
-    <input type="text" name="pickup" placeholder="Pickup Location" required><br><br>
+<input type="text" name="pickup" placeholder="Pickup Location" required>
 
-    <input type="text" name="destination" placeholder="Destination" required><br><br>
+<input type="text" name="destination" placeholder="Destination" required>
 
-    <input type="date" name="date" required><br><br>
+<input type="date" name="date" required>
 
-    <input type="time" name="time" required><br><br>
+<input type="time" name="time" required>
 
-    <input type="number" name="seats" placeholder="Available Seats" required><br><br>
+<input type="number" name="seats" placeholder="Available Seats" required>
 
-    <input type="text" name="vehicle" placeholder="Vehicle Name" required><br><br>
+<input type="text" name="vehicle" placeholder="Vehicle Name" required>
 
-    <input type="number" name="price" placeholder="Price Per Seat" required><br><br>
+<input type="number" name="price" placeholder="Price Per Seat" required>
 
-    <button type="submit">Create Ride</button>
+<button>Create Ride</button>
 
 </form>
 
+</div>
+
 </body>
+
 </html>

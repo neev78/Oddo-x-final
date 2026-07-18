@@ -96,6 +96,24 @@ def create_ride():
 
     return render_template("create_ride.html")
 
+@app.route("/find_ride")
+def find_ride():
+
+    if "user" not in session:
+        return redirect("/login")
+
+    rides = []
+
+    docs = db.collection("Rides").stream()
+
+    for doc in docs:
+
+        ride = doc.to_dict()
+        ride["id"] = doc.id
+        rides.append(ride)
+
+    return render_template("find_ride.html", rides=rides)
+
 @app.route("/test")
 def test():
     return "Firebase Connected Successfully!"
