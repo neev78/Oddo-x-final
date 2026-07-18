@@ -80,6 +80,7 @@ def register():
             "email": email,
             "phone": request.form["phone"],
             "password": request.form["password"],
+            "gender": request.form.get("gender", "other"),
             "walletBalance": 500  # Default wallet balance for demo
         }
 
@@ -154,7 +155,89 @@ def find_ride():
 def commute_buddy():
     if "user" not in session:
         return redirect("/login")
-    return render_template("commute_buddy.html")
+
+    current_email = session["user"]
+    _, user_data = get_user_ref()
+
+    # Check if the current user already has a buddy profile
+    my_profile = None
+    my_docs = db.collection("CommuteBuddies").where("email", "==", current_email).stream()
+    for doc in my_docs:
+        my_profile = doc.to_dict()
+        my_profile["id"] = doc.id
+
+    # Get filter params from query string
+    women_only = request.args.get("women_only", "")
+    search_area = request.args.get("area", "").strip().lower()
+
+    # Fetch all buddy profiles except the current user
+    all_buddies = []
+    docs = db.collection("CommuteBuddies").stream()
+    for doc in docs:
+        buddy = doc.to_dict()
+        buddy["id"] = doc.id
+        if buddy.get("email") == current_email:
+            continue
+        # Apply Women Only filter
+        if women_only == "yes" and buddy.get("gender") != "female":
+            continue
+        # Apply area search filter
+        if search_area:
+            pickup_match = search_area in buddy.get("area", "").lower()
+            dest_match = search_area in buddy.get("destination", "").lower()
+            if not pickup_match and not dest_match:
+                continue
+        all_buddies.append(buddy)
+
+    return render_template("commute_buddy.html",
+                           buddies=all_buddies,
+                           my_profile=my_profile,
+                           user_data=user_data,
+                           women_only=women_only,
+                           search_area=request.args.get("area", ""))
+
+@app.route("/create_buddy", methods=["POST"])
+def create_buddy():
+    """Create or update a commute buddy profile in Firebase."""
+    if "user" not in session:
+        return redirect("/login")
+
+    current_email = session["user"]
+    _, user_data = get_user_ref()
+
+    # Delete existing profile if any (one profile per user)
+    existing = db.collection("CommuteBuddies").where("email", "==", current_email).stream()
+    for doc in existing:
+        db.collection("CommuteBuddies").document(doc.id).delete()
+
+    buddy_data = {
+        "name": user_data.get("name", "Unknown") if user_data else request.form.get("name", "Unknown"),
+        "email": current_email,
+        "phone": user_data.get("phone", "") if user_data else "",
+        "gender": user_data.get("gender", "other") if user_data else request.form.get("gender", "other"),
+        "area": request.form["area"],
+        "destination": request.form["destination"],
+        "schedule": request.form["schedule"],
+        "department": request.form.get("department", ""),
+        "note": request.form.get("note", ""),
+        "women_only_preference": "yes" if request.form.get("women_only_pref") else "no"
+    }
+
+    db.collection("CommuteBuddies").add(buddy_data)
+    return redirect("/commute_buddy")
+
+@app.route("/delete_buddy/<buddy_id>", methods=["POST"])
+def delete_buddy(buddy_id):
+    """Remove your commute buddy listing."""
+    if "user" not in session:
+        return redirect("/login")
+
+    doc_ref = db.collection("CommuteBuddies").document(buddy_id)
+    doc = doc_ref.get()
+    if doc.exists and doc.to_dict().get("email") == session["user"]:
+        doc_ref.delete()
+
+    return redirect("/commute_buddy")
 
 @app.route("/sos")
 def sos():

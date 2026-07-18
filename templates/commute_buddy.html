@@ -6,98 +6,271 @@
     <title>RouteMate - Commute Buddy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .toggle-container { display: flex; align-items: center; gap: 10px; }
+        .toggle-switch { position: relative; width: 48px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background-color: var(--border-color); border-radius: 26px;
+            transition: var(--transition-base);
+        }
+        .toggle-slider::before {
+            content: ""; position: absolute; height: 20px; width: 20px;
+            left: 3px; bottom: 3px; background: white; border-radius: 50%;
+            transition: var(--transition-base); box-shadow: var(--shadow-sm);
+        }
+        .toggle-switch input:checked + .toggle-slider { background-color: #ec4899; }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); }
+        .women-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(236,72,153,0.1); color: #ec4899;
+            padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .my-profile-banner {
+            background: linear-gradient(135deg, var(--primary-light), rgba(14,165,233,0.1));
+            border: 1px solid var(--border-color); border-radius: 16px;
+            padding: 24px; margin-bottom: 30px; animation: fadeIn 0.4s ease-out;
+        }
+        .my-profile-banner h3 { margin-bottom: 12px; }
+        .profile-details { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+        .profile-tag {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 14px; color: var(--text-muted);
+        }
+        .profile-tag i { color: var(--primary); width: 16px; }
+    </style>
 </head>
 <body>
 
     <header class="navbar">
         <div class="logo-area">
-            <div class="logo-icon">
-                <i class="fas fa-car-tunnel"></i>
-            </div>
+            <div class="logo-icon"><i class="fas fa-car-tunnel"></i></div>
             <div class="logo-text">
                 <h2>RouteMate</h2>
                 <span>Smart Carpooling Platform</span>
             </div>
         </div>
-
         <nav class="dashboard-navbar">
             <a href="/create_ride"><i class="fas fa-plus"></i> Offer Ride</a>
             <a href="/find_ride"><i class="fas fa-magnifying-glass"></i> Find Ride</a>
             <a href="/commute_buddy" class="active-tab"><i class="fas fa-user-group"></i> Commute Buddy</a>
             <a href="/ride_history"><i class="fas fa-history"></i> Ride History</a>
-            <a href="/wallet"><i class="fas fa-wallet"></i> Wallet</a>
             <a href="/sos" style="color: var(--danger);"><i class="fas fa-circle-exclamation"></i> Emergency SOS</a>
         </nav>
-
-        <a href="/logout" class="logout-btn">
-            <i class="fas fa-right-from-bracket"></i> Logout
-        </a>
+        <a href="/logout" class="logout-btn"><i class="fas fa-right-from-bracket"></i> Logout</a>
     </header>
 
     <main class="container" style="flex-grow: 1; padding: 40px 24px;">
-        <section class="hero" style="padding: 10px 0 30px;">
-            <h1>Commute Buddy Finder</h1>
-            <p>Find coworkers living nearby who share similar office hours for regular carpooling.</p>
+
+        <section class="hero" style="padding: 10px 0 20px;">
+            <h1>Commute Buddy</h1>
+            <p>Register your commute so coworkers can find and match with you, or browse existing buddies nearby.</p>
         </section>
 
-        <div class="buddy-match-panel">
-            <!-- Search Filters -->
+        <!-- ═══════════ YOUR PROFILE SECTION ═══════════ -->
+
+        {% if my_profile %}
+        <div class="my-profile-banner">
+            <h3><i class="fas fa-id-badge" style="color: var(--primary); margin-right: 8px;"></i> Your Active Buddy Profile</h3>
+            <div class="profile-details">
+                <span class="profile-tag"><i class="fas fa-location-dot"></i> {{ my_profile.area }}</span>
+                <span class="profile-tag"><i class="fas fa-flag-checkered"></i> {{ my_profile.destination }}</span>
+                <span class="profile-tag"><i class="fas fa-clock"></i> {{ my_profile.schedule }}</span>
+                {% if my_profile.department %}
+                <span class="profile-tag"><i class="fas fa-building"></i> {{ my_profile.department }}</span>
+                {% endif %}
+                {% if my_profile.women_only_preference == 'yes' %}
+                <span class="women-badge"><i class="fas fa-venus"></i> Women Only</span>
+                {% endif %}
+            </div>
+            {% if my_profile.note %}
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;"><i class="fas fa-comment" style="margin-right: 6px;"></i>{{ my_profile.note }}</p>
+            {% endif %}
+            <form action="/delete_buddy/{{ my_profile.id }}" method="POST" style="display: inline;">
+                <button type="submit" class="logout-btn" style="font-size: 13px; padding: 8px 18px;">
+                    <i class="fas fa-trash-can"></i> Remove My Listing
+                </button>
+            </form>
+        </div>
+        {% else %}
+
+        <!-- ═══════════ CREATE BUDDY PROFILE FORM ═══════════ -->
+        <div class="buddy-match-panel" style="grid-template-columns: 1fr; margin-top: 0; margin-bottom: 40px;">
             <div class="buddy-search-card glass-panel">
-                <h3 style="margin-bottom: 20px;"><i class="fas fa-sliders-h" style="color: var(--primary); margin-right: 8px;"></i> Matching Criteria</h3>
-                
-                <form onsubmit="matchBuddies(event)">
-                    <div class="form-group">
-                        <label for="buddy-start">Starting Suburb / Landmark</label>
-                        <div class="input-container">
-                            <i class="fas fa-location-dot"></i>
-                            <input type="text" id="buddy-start" placeholder="e.g. Indiranagar, Sector 7" required>
+                <h3 style="margin-bottom: 20px;">
+                    <i class="fas fa-bullhorn" style="color: var(--primary); margin-right: 8px;"></i>
+                    Register Your Commute
+                </h3>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    Fill out the form below so other employees can discover you and carpool together.
+                </p>
+
+                <form action="/create_buddy" method="POST">
+                    <div class="two-fields">
+                        <div class="form-group">
+                            <label for="area">Your Starting Area / Landmark</label>
+                            <div class="input-container">
+                                <i class="fas fa-location-dot"></i>
+                                <input type="text" id="area" name="area" placeholder="e.g. Indiranagar, Sector 7" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="destination">Your Office / Destination</label>
+                            <div class="input-container">
+                                <i class="fas fa-flag-checkered"></i>
+                                <input type="text" id="destination" name="destination" placeholder="e.g. Tech Park, MG Road" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="two-fields">
+                        <div class="form-group">
+                            <label for="schedule">Commute Schedule</label>
+                            <div class="input-container">
+                                <i class="fas fa-clock"></i>
+                                <select id="schedule" name="schedule" required>
+                                    <option value="9:00 AM - 6:00 PM">9:00 AM – 6:00 PM</option>
+                                    <option value="8:30 AM - 5:30 PM">8:30 AM – 5:30 PM</option>
+                                    <option value="10:00 AM - 7:00 PM">10:00 AM – 7:00 PM</option>
+                                    <option value="8:00 AM - 5:00 PM">8:00 AM – 5:00 PM</option>
+                                    <option value="Flexible">Flexible</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department (optional)</label>
+                            <div class="input-container">
+                                <i class="fas fa-building-user"></i>
+                                <select id="department" name="department">
+                                    <option value="">Any / Not specified</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Product & Design">Product & Design</option>
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Sales & Marketing">Sales & Marketing</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Operations">Operations</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="buddy-dept">Department Preference</label>
+                        <label for="note">A Short Note (optional)</label>
                         <div class="input-container">
-                            <i class="fas fa-building-user"></i>
-                            <select id="buddy-dept">
-                                <option value="any">Any Department</option>
-                                <option value="engineering">Engineering</option>
-                                <option value="product">Product & Design</option>
-                                <option value="hr">Human Resources</option>
-                                <option value="sales">Sales & Marketing</option>
-                            </select>
+                            <i class="fas fa-comment-dots"></i>
+                            <input type="text" id="note" name="note" placeholder="e.g. I have a car, looking for 2 riders">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="buddy-time">Commute Schedule</label>
-                        <div class="input-container">
-                            <i class="fas fa-clock"></i>
-                            <select id="buddy-time">
-                                <option value="9am">9:00 AM - 6:00 PM</option>
-                                <option value="8am">8:30 AM - 5:30 PM</option>
-                                <option value="10am">10:00 AM - 7:00 PM</option>
-                            </select>
-                        </div>
+                    <div class="form-group" style="margin-top: 8px;">
+                        <label class="toggle-container" style="cursor: pointer;">
+                            <span class="toggle-switch">
+                                <input type="checkbox" name="women_only_pref" value="yes">
+                                <span class="toggle-slider"></span>
+                            </span>
+                            <span style="font-size: 14px;"><i class="fas fa-venus" style="color: #ec4899; margin-right: 4px;"></i> I prefer Women-Only matches</span>
+                        </label>
                     </div>
 
-                    <button type="submit" class="primary-btn" style="margin-top: 15px; width: 100%;">
-                        <i class="fas fa-search-location"></i> Find Cohorts
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i> Publish My Commute Profile
                     </button>
                 </form>
             </div>
+        </div>
+        {% endif %}
 
-            <!-- Matches List -->
-            <div class="buddy-results-card glass-panel">
-                <h3 style="margin-bottom: 20px;"><i class="fas fa-users-viewfinder" style="color: var(--primary); margin-right: 8px;"></i> Recommended Cohorts</h3>
-                
-                <div class="buddy-list" id="buddy-matches-list">
-                    <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-                        <i class="fas fa-people-arrows" style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;"></i>
-                        <h4>Configure matches on the left</h4>
-                        <p style="font-size: 13px; margin-top: 5px;">We will scan corporate databases to find similar routes.</p>
-                    </div>
+        <!-- ═══════════ BROWSE & FILTER BUDDIES ═══════════ -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+            <h2><i class="fas fa-users-viewfinder" style="color: var(--primary); margin-right: 8px;"></i> Available Commute Buddies</h2>
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="GET" action="/commute_buddy" class="glass-panel" style="padding: 20px; border-radius: 14px; margin-bottom: 30px; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;">
+            <div class="form-group" style="flex: 1; min-width: 200px;">
+                <label for="area-search">Search by Area / Destination</label>
+                <div class="input-container">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <input type="text" id="area-search" name="area" value="{{ search_area }}" placeholder="Type a location...">
                 </div>
             </div>
+
+            <div class="form-group" style="min-width: 180px;">
+                <label class="toggle-container" style="cursor: pointer; margin-bottom: 6px;">
+                    <span class="toggle-switch">
+                        <input type="checkbox" name="women_only" value="yes" {% if women_only == 'yes' %}checked{% endif %} onchange="this.form.submit()">
+                        <span class="toggle-slider"></span>
+                    </span>
+                    <span style="font-size: 14px;"><i class="fas fa-venus" style="color: #ec4899;"></i> Women Only</span>
+                </label>
+            </div>
+
+            <button type="submit" class="primary-btn" style="height: 44px; padding: 0 24px;">
+                <i class="fas fa-filter"></i> Apply
+            </button>
+        </form>
+
+        <!-- Buddy Cards Grid -->
+        <div class="rides-grid">
+            {% for buddy in buddies %}
+            <div class="ride-card glass-panel animate-fade">
+                <div class="ride-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div class="buddy-avatar">{{ buddy.name[:2] | upper }}</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 16px;">{{ buddy.name }}</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">
+                                {% if buddy.department %}{{ buddy.department }} · {% endif %}{{ buddy.schedule }}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                        {% if buddy.gender == 'female' %}
+                        <span class="women-badge"><i class="fas fa-venus"></i> Female</span>
+                        {% endif %}
+                        {% if buddy.women_only_preference == 'yes' %}
+                        <span class="women-badge" style="font-size: 11px;"><i class="fas fa-lock"></i> Women Only</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="ride-details-list" style="margin-bottom: 14px;">
+                    <div class="ride-detail-item">
+                        <i class="fa-solid fa-location-dot" style="color: var(--accent);"></i>
+                        <span><strong>From:</strong> {{ buddy.area }}</span>
+                    </div>
+                    <div class="ride-detail-item">
+                        <i class="fa-solid fa-flag-checkered" style="color: var(--danger);"></i>
+                        <span><strong>To:</strong> {{ buddy.destination }}</span>
+                    </div>
+                    {% if buddy.note %}
+                    <div class="ride-detail-item">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>"{{ buddy.note }}"</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <a href="mailto:{{ buddy.email }}?subject=RouteMate Commute Buddy Request&body=Hi {{ buddy.name }}, I found your commute profile on RouteMate and would like to connect for carpooling!" class="book-btn" style="text-decoration: none; text-align: center;">
+                    <i class="fas fa-envelope"></i> Connect via Email
+                </a>
+            </div>
+            {% else %}
+            <div class="no-rides">
+                <i class="fas fa-people-arrows" style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;"></i>
+                <h3>No Commute Buddies Found</h3>
+                <p>
+                    {% if women_only == 'yes' %}
+                    No women-only buddy profiles match your filters. Try removing the filter.
+                    {% elif search_area %}
+                    No buddies found for "{{ search_area }}". Try a different area.
+                    {% else %}
+                    Be the first to register your commute — others will find and match with you!
+                    {% endif %}
+                </p>
+            </div>
+            {% endfor %}
         </div>
     </main>
 

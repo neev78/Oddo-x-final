@@ -62,16 +62,31 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="email">Work Email Address</label>
-                <div class="input-container">
-                    <i class="fas fa-envelope"></i>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        placeholder="john.doe@company.com" 
-                        required>
+            <div class="two-fields">
+                <div class="form-group">
+                    <label for="email">Work Email Address</label>
+                    <div class="input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="john.doe@company.com" 
+                            required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <div class="input-container">
+                        <i class="fas fa-venus-mars"></i>
+                        <select id="gender" name="gender" required>
+                            <option value="" disabled selected>Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
