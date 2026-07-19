@@ -139,14 +139,50 @@ def find_ride():
     if "user" not in session:
         return redirect("/login")
 
+    current_user = session["user"]
     rides = []
+
+    # Get IDs of rides already booked by the current user
+    booked_ride_ids = set()
+    try:
+        bookings = db.collection("Bookings").where("customer", "==", current_user).where("status", "==", "booked").stream()
+        for doc in bookings:
+            booked_ride_ids.add(doc.to_dict().get("ride_id"))
+    except Exception as e:
+        print("Error fetching booked ride IDs:", e)
 
     docs = db.collection("Rides").stream()
 
     for doc in docs:
-
         ride = doc.to_dict()
         ride["id"] = doc.id
+
+        # 1. Hide if the current user is the driver of the ride
+        if ride.get("driver") == current_user:
+            continue
+
+        # 2. Hide if the current user has already booked this ride
+        if ride["id"] in booked_ride_ids:
+            continue
+
+        # 3. Hide if all seats are already booked
+        try:
+            seats = int(ride.get("seats", 0))
+        except (ValueError, TypeError):
+            seats = 0
+        if seats <= 0:
+            continue
+
+        # 4. Hide if the ride date/time has already passed
+        if ride.get("date") and ride.get("time"):
+            try:
+                ride_datetime = datetime.datetime.strptime(f"{ride['date']} {ride['time']}", "%Y-%m-%d %H:%M")
+                current_now = datetime.datetime.now()
+                if ride_datetime < current_now:
+                    continue
+            except Exception as e:
+                print("Error parsing ride date/time:", e)
+
         rides.append(ride)
 
     return render_template("find_ride.html", rides=rides)
